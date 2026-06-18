@@ -107,43 +107,6 @@ if (clearBtn) {
   });
 }
 
-// ---- Terminal demo ----
-const runBtn = document.getElementById('runBtn');
-const termBody = document.getElementById('termBody');
-const logLines = [
-  { text: '$ uipath run REFramework --queue inbound', cls: '' },
-  { text: '→ Initializing dispatcher...', cls: '' },
-  { text: '→ Connecting to SAP Business One ... OK', cls: '' },
-  { text: '→ Reading queue: 42 items found', cls: '' },
-  { text: '→ Processing item 1/42 ... done', cls: '' },
-  { text: '→ Processing item 27/42 ... retry (transient error) ... done', cls: 'ok' },
-  { text: '→ Generating report (.xlsx) ... done', cls: '' },
-  { text: '✓ Workflow completed in 2.4s — 42/42 processed, 0 exceptions', cls: 'ok' }
-];
-
-function runDemo(){
-  runBtn.disabled = true;
-  runBtn.textContent = '⟳ Running...';
-  termBody.innerHTML = '';
-  let i = 0;
-  function next(){
-    if (i >= logLines.length) {
-      runBtn.disabled = false;
-      runBtn.textContent = '↻ Run again';
-      return;
-    }
-    const line = document.createElement('div');
-    line.className = 'term-line ' + logLines[i].cls;
-    line.textContent = logLines[i].text;
-    termBody.appendChild(line);
-    i++;
-    setTimeout(next, reduceMotion ? 120 : 380);
-  }
-  next();
-}
-
-if (runBtn) runBtn.addEventListener('click', runDemo);
-
 // ---- Stat count-up ----
 function animateCount(el){
   const target = parseFloat(el.dataset.target);
@@ -211,9 +174,9 @@ if (!reduceMotion) {
   }
 }
 
-// ---- Card tilt (education/credential cards + representative work cards) ----
+// ---- Card tilt (education/credential cards, representative work cards, award cards) ----
 if (!reduceMotion) {
-  document.querySelectorAll('.card, .work-card').forEach(card => {
+  document.querySelectorAll('.card, .work-card, .award-card').forEach(card => {
     card.addEventListener('mousemove', (e) => {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left, y = e.clientY - rect.top;
