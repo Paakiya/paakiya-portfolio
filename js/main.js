@@ -161,7 +161,13 @@ function animateCount(el){
     const progress = Math.min((now - startTime) / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
     el.textContent = Math.round(eased * target) + suffix;
-    if (progress < 1) requestAnimationFrame(step);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.style.transition = 'transform .3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      el.style.transform = 'scale(1.18)';
+      setTimeout(() => { el.style.transform = 'scale(1)'; }, 30);
+    }
   }
   requestAnimationFrame(step);
 }
@@ -183,8 +189,7 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 30000);
 
-// ---- Copy email + toast ----
-const copyBtn = document.getElementById('copyEmailBtn');
+// ---- Toast system ----
 const toast = document.getElementById('toast');
 let toastTimer;
 function showToast(msg){
@@ -192,16 +197,6 @@ function showToast(msg){
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
-}
-if (copyBtn) {
-  copyBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText('paakiyaleema13@gmail.com');
-      showToast('Email copied to clipboard ✓');
-    } catch (e) {
-      showToast('Copy failed — email is paakiyaleema13@gmail.com');
-    }
-  });
 }
 
 // ---- Hero cursor glow ----
@@ -215,6 +210,102 @@ if (!reduceMotion) {
       cursorGlow.style.top = (e.clientY - rect.top) + 'px';
     });
   }
+}
+
+// ---- Confetti burst (reusable) ----
+function burstConfetti(x, y, count){
+  if (reduceMotion) return;
+  const colors = ['#FF6A1F', '#2DD4BF', '#A78BFA', '#F472B6', '#FFB37A'];
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 90;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 40;
+    p.style.position = 'fixed';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    const size = 4 + Math.random() * 4;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.pointerEvents = 'none';
+    p.style.zIndex = 9999;
+    p.style.transition = 'transform 0.9s cubic-bezier(0.2,0.8,0.2,1), opacity 0.9s ease';
+    document.body.appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.random() * 360}deg)`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), 950);
+  }
+}
+
+// ---- Cursor sparkle trail ----
+if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
+  const trail = document.getElementById('cursorTrail');
+  const trailColors = ['#FF6A1F', '#2DD4BF', '#A78BFA', '#F472B6'];
+  let lastSpawn = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = performance.now();
+    if (now - lastSpawn < 45) return;
+    lastSpawn = now;
+    const dot = document.createElement('div');
+    const color = trailColors[Math.floor(Math.random() * trailColors.length)];
+    dot.style.position = 'fixed';
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+    dot.style.width = '6px';
+    dot.style.height = '6px';
+    dot.style.borderRadius = '50%';
+    dot.style.background = color;
+    dot.style.boxShadow = '0 0 6px ' + color;
+    dot.style.transform = 'translate(-50%, -50%) scale(1)';
+    dot.style.opacity = '0.85';
+    dot.style.transition = 'opacity .6s ease, transform .6s ease';
+    trail.appendChild(dot);
+    requestAnimationFrame(() => {
+      dot.style.opacity = '0';
+      dot.style.transform = 'translate(-50%, -50%) scale(0.2) translateY(14px)';
+    });
+    setTimeout(() => dot.remove(), 650);
+  }, { passive: true });
+}
+
+// ---- Footer celebration ----
+const footerEl = document.querySelector('footer');
+let celebrated = false;
+if (footerEl && 'IntersectionObserver' in window) {
+  const footObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !celebrated) {
+        celebrated = true;
+        const rect = footerEl.getBoundingClientRect();
+        burstConfetti(window.innerWidth / 2, Math.max(rect.top + 30, 60), 36);
+        showToast('🎉 You made it to the end — thanks for reading!');
+      }
+    });
+  }, { threshold: 0.3 });
+  footObserver.observe(footerEl);
+}
+
+// ---- Appreciate button ----
+const appreciateBtn = document.getElementById('appreciateBtn');
+const clapCountEl = document.getElementById('clapCount');
+let clapCount = 0;
+if (appreciateBtn) {
+  appreciateBtn.addEventListener('click', () => {
+    clapCount++;
+    clapCountEl.textContent = clapCount;
+    const rect = appreciateBtn.getBoundingClientRect();
+    burstConfetti(rect.left + rect.width / 2, rect.top, 20);
+    if (!reduceMotion) {
+      appreciateBtn.style.transition = 'transform .3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      appreciateBtn.style.transform = 'scale(1.15)';
+      setTimeout(() => { appreciateBtn.style.transform = 'scale(1)'; }, 200);
+    }
+  });
 }
 
 // ---- Card tilt (education/credential cards, representative work cards, award cards) ----
